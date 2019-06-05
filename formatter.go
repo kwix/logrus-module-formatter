@@ -3,6 +3,8 @@ package formatter
 import (
 	"fmt"
 
+	"github.com/jinzhu/copier"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -29,12 +31,17 @@ func NewWithFormatter(modules ModulesMap, formatter logrus.Formatter) (*ModuleFo
 }
 
 func (f *ModuleFormatter) Format(e *logrus.Entry) ([]byte, error) {
-	entry := *e
+	entry := &logrus.Entry{}
+	err := copier.Copy(entry, e)
+	if err != nil {
+		return nil, err
+	}
+
 	module, entryHasModuleField := entry.Data["module"]
 
 	// allow any logs that don't have the module field
 	if f.allowAllModules {
-		return f.defaultFormatter.Format(&entry)
+		return f.defaultFormatter.Format(entry)
 	}
 
 	if entryHasModuleField {
@@ -45,7 +52,7 @@ func (f *ModuleFormatter) Format(e *logrus.Entry) ([]byte, error) {
 		level, whitelisted := f.whitelist[module.(string)]
 		if whitelisted {
 			if entry.Level <= level {
-				return f.defaultFormatter.Format(&entry)
+				return f.defaultFormatter.Format(entry)
 			} else {
 				return nil, nil
 			}
@@ -54,7 +61,7 @@ func (f *ModuleFormatter) Format(e *logrus.Entry) ([]byte, error) {
 
 	// for non-whitelisted modules, apply the global level
 	if globalLevel, ok := f.whitelist["*"]; ok && entry.Level <= globalLevel {
-		return f.defaultFormatter.Format(&entry)
+		return f.defaultFormatter.Format(entry)
 	}
 
 	return nil, nil
