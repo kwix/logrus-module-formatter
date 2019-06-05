@@ -37,6 +37,7 @@ func (f *ModuleFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 
 	if entryHasModuleField {
+		entry.Data = rebuildData(entry.Data)
 		entry.Message = fmt.Sprintf("[%s] %s", module.(string), entry.Message)
 
 		// for the whitelisted modules, allow only the entries with level >= configured
@@ -56,4 +57,17 @@ func (f *ModuleFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 
 	return nil, nil
+}
+
+func rebuildData(data logrus.Fields) logrus.Fields {
+	newData := logrus.Fields{}
+
+	for k, v := range data {
+		if k == "module" {
+			continue
+		}
+		newData[k] = v
+	}
+
+	return newData
 }

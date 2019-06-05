@@ -2,6 +2,7 @@ package formatter
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -38,7 +39,6 @@ func TestFormatter(t *testing.T) {
 
 	bufferOut := bytes.NewBufferString("")
 
-	logrus.SetLevel(logrus.TraceLevel)
 	logrus.SetFormatter(f)
 	logrus.SetOutput(bufferOut)
 
@@ -50,11 +50,46 @@ func TestFormatter(t *testing.T) {
 		t.Error("Output contains illegal content: foo")
 	}
 
-	if !strings.Contains(bufferOut.String(), "bar") {
+	if !strings.Contains(bufferOut.String(), "[test1] bar") {
 		t.Error("Output does not contain required content: bar")
 	}
 
 	if !strings.Contains(bufferOut.String(), "baz") {
 		t.Error("Output does not contain required content: baz")
 	}
+
+	fmt.Print(bufferOut)
+}
+
+func TestFormatter_globalVar(t *testing.T) {
+	f, err := New(ModulesMap{
+		"*":    logrus.WarnLevel,
+		"test": logrus.DebugLevel,
+	})
+	if err != nil {
+		t.Error("Did not expect error while creating new formatter, got: ", err)
+	}
+
+	bufferOut := bytes.NewBufferString("")
+
+	logrus.SetFormatter(f)
+	logrus.SetOutput(bufferOut)
+
+	log := logrus.WithField("module", "test")
+
+	log.WithField("foo", "hello").Debug("foo")
+	log.Debug("bar")
+	log.Debug("baz")
+
+	if !strings.Contains(bufferOut.String(), "foo") {
+		t.Error("Output does not contain required content: foo")
+	}
+	if !strings.Contains(bufferOut.String(), "bar") {
+		t.Error("Output does not contain required content: bar")
+	}
+	if !strings.Contains(bufferOut.String(), "baz") {
+		t.Error("Output does not contain required content: baz")
+	}
+
+	fmt.Print(bufferOut)
 }
