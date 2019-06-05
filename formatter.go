@@ -35,8 +35,6 @@ func (f *ModuleFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 
 	if entryHasModuleField {
-		delete(entry.Data, "module")
-
 		// for the whitelisted modules, allow only the entries with level >= configured
 		level, whitelisted := f.whitelist[module.(string)]
 		if whitelisted {
