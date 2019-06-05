@@ -30,19 +30,21 @@ func (f *ModuleFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	module, entryHasModuleField := entry.Data["module"]
 
 	// allow any logs that don't have the module field
-	if f.allowAllModules || !entryHasModuleField {
+	if f.allowAllModules {
 		return f.defaultFormatter.Format(entry)
 	}
 
-	delete(entry.Data, "module")
+	if entryHasModuleField {
+		delete(entry.Data, "module")
 
-	// for the whitelisted modules, allow only the entries with level >= configured
-	level, whitelisted := f.whitelist[module.(string)]
-	if whitelisted {
-		if entry.Level <= level {
-			return f.defaultFormatter.Format(entry)
-		} else {
-			return nil, nil
+		// for the whitelisted modules, allow only the entries with level >= configured
+		level, whitelisted := f.whitelist[module.(string)]
+		if whitelisted {
+			if entry.Level <= level {
+				return f.defaultFormatter.Format(entry)
+			} else {
+				return nil, nil
+			}
 		}
 	}
 
