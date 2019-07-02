@@ -15,7 +15,7 @@ type ModuleFormatter struct {
 
 type ModulesMap map[string]logrus.Level
 
-func NewModulesMap(logging string) {
+func NewModulesMap(logging string) ModulesMap {
 	modulesMap := make(ModulesMap)
 
 	modules := strings.Split(logging, ",")
@@ -27,6 +27,8 @@ func NewModulesMap(logging string) {
 		}
 		modulesMap[ms[0]] = level
 	}
+
+	return modulesMap
 }
 
 func New(modules ModulesMap) (*ModuleFormatter, error) {
