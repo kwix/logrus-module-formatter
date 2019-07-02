@@ -2,6 +2,7 @@ package formatter
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -13,6 +14,20 @@ type ModuleFormatter struct {
 }
 
 type ModulesMap map[string]logrus.Level
+
+func NewModulesMap(logging string) {
+	modulesMap := make(ModulesMap)
+
+	modules := strings.Split(logging, ",")
+	for _, m := range modules {
+		ms := strings.Split(m, "=")
+		level, err := logrus.ParseLevel(ms[1])
+		if err != nil {
+			panic(err)
+		}
+		modulesMap[ms[0]] = level
+	}
+}
 
 func New(modules ModulesMap) (*ModuleFormatter, error) {
 	return NewWithFormatter(modules, &logrus.TextFormatter{})
